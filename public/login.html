@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weihnachtsfeier - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h1>🎄 Weihnachtsfeier 2025</h1>
+            <h2>Spieler-Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required placeholder="Dein Name">
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Telefonnummer:</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="z.B. 0123456789">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <p class="admin-link">
+                Admin? <a href="/admin-login">Zum Admin-Panel</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phoneNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Speichere Token im localStorage
+                    localStorage.setItem('userToken', data.token);
+                    localStorage.setItem('userName', name);
+                    window.location.href = data.redirect;
+                } else {
+                    alert('Fehler: ' + (data.error || 'Login fehlgeschlagen'));
+                }
+            } catch (error) {
+                alert('Fehler beim Login: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

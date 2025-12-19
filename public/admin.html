@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weihnachtsfeier - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>🎄 Admin-Panel - Weihnachtsfeier</h1>
+            <button id="logoutBtn" class="btn btn-danger">Logout</button>
+        </header>
+
+        <div class="admin-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="benutzer">Benutzer</button>
+                <button class="tab-btn" data-tab="gruppen">Gruppen</button>
+                <button class="tab-btn" data-tab="punkte">Punkte</button>
+                <button class="tab-btn" data-tab="aufgaben">Aufgaben</button>
+                <button class="tab-btn" data-tab="rangliste">Rangliste</button>
+            </div>
+
+            <!-- Tab: Benutzer -->
+            <div id="benutzer" class="tab-content active">
+                <h2>Benutzer verwalten</h2>
+                
+                <div class="form-section">
+                    <h3>Neuen Benutzer hinzufügen</h3>
+                    <form id="addUserForm">
+                        <div class="form-group">
+                            <label for="addName">Name:</label>
+                            <input type="text" id="addName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addPhone">Telefonnummer:</label>
+                            <input type="tel" id="addPhone" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Benutzer hinzufügen</button>
+                    </form>
+                </div>
+
+                <div class="list-section">
+                    <h3>Alle Benutzer</h3>
+                    <div id="usersList" class="users-list"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Gruppen -->
+            <div id="gruppen" class="tab-content">
+                <h2>Gruppen verwalten</h2>
+                
+                <div class="form-section">
+                    <h3>Benutzer zu Gruppe zuteilen</h3>
+                    <form id="assignGroupForm">
+                        <div class="form-group">
+                            <label for="groupUser">Benutzer:</label>
+                            <select id="groupUser" required>
+                                <option value="">-- Benutzer wählen --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="groupName">Gruppenname:</label>
+                            <input type="text" id="groupName" placeholder="z.B. Team Rot, Team Blau" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Gruppe zuweisen</button>
+                    </form>
+                </div>
+
+                <div class="list-section">
+                    <h3>Gruppen-Übersicht</h3>
+                    <div id="groupsList" class="groups-list"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Punkte -->
+            <div id="punkte" class="tab-content">
+                <h2>Punkte vergeben</h2>
+                
+                <div class="form-section">
+                    <h3>Punkte hinzufügen/ändern</h3>
+                    <form id="assignPointsForm">
+                        <div class="form-group">
+                            <label for="pointsUser">Benutzer:</label>
+                            <select id="pointsUser" required>
+                                <option value="">-- Benutzer wählen --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="gameName">Spiel:</label>
+                            <input type="text" id="gameName" placeholder="z.B. Kniffelblock, Würfeln" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pointsValue">Punkte:</label>
+                            <input type="number" id="pointsValue" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Punkte hinzufügen</button>
+                    </form>
+                </div>
+
+                <div class="form-section">
+                    <h3>Punkte direkt setzen</h3>
+                    <form id="setPointsForm">
+                        <div class="form-group">
+                            <label for="setPointsUser">Benutzer:</label>
+                            <select id="setPointsUser" required>
+                                <option value="">-- Benutzer wählen --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPointsValue">Neue Punktezahl:</label>
+                            <input type="number" id="newPointsValue" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning">Punkte setzen</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab: Aufgaben -->
+            <div id="aufgaben" class="tab-content">
+                <h2>Abendsaufgaben zuteilen</h2>
+                
+                <div class="form-section">
+                    <h3>Aufgabe zuweisen</h3>
+                    <form id="assignTaskForm">
+                        <div class="form-group">
+                            <label for="taskUser">Benutzer:</label>
+                            <select id="taskUser" required>
+                                <option value="">-- Benutzer wählen --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskText">Aufgabe:</label>
+                            <textarea id="taskText" placeholder="z.B. Alle zum Lachen bringen, Den lustigsten Witz erzählen" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Aufgabe zuweisen</button>
+                    </form>
+                </div>
+
+                <div class="list-section">
+                    <h3>Zugeteilte Aufgaben</h3>
+                    <div id="tasksList" class="tasks-list"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Rangliste -->
+            <div id="rangliste" class="tab-content">
+                <h2>Rangliste</h2>
+                <div id="leaderboard" class="leaderboard"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper: Admin-Token aus localStorage holen
+        function getAdminToken() {
+            return localStorage.getItem('adminToken');
+        }
+
+        // Helper: API-Anfrage mit Admin-Token
+        async function adminFetch(url, options = {}) {
+            const token = getAdminToken();
+            if (!token) {
+                window.location.href = '/admin-login';
+                return;
+            }
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            if (response.status === 403) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/admin-login';
+                return;
+            }
+
+            return response;
+        }
+
+        // Check if Admin logged in
+        if (!getAdminToken()) {
+            window.location.href = '/admin-login';
+        }
+
+        // Tab-Wechsel
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+                
+                // Spezielle Aktionen für bestimmte Tabs
+                if (btn.dataset.tab === 'rangliste') loadLeaderboard();
+            });
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await adminFetch('/admin/logout', { method: 'POST' });
+            } catch (error) {
+                console.error('Logout-Fehler:', error);
+            } finally {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/admin-login';
+            }
+        });
+
+        // Benutzer laden
+        async function loadUsers() {
+            try {
+                const response = await adminFetch('/api/admin/users');
+                const users = await response.json();
+                
+                // Update Benutzer-Liste
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = users.map(user => `
+                    <div class="user-card">
+                        <h4>${user.name}</h4>
+                        <p>📱 ${user.phoneNumber}</p>
+                        <p>👥 Gruppe: ${user.group || 'Keine'}</p>
+                        <p>⭐ Punkte: ${user.points}</p>
+                        <p>📝 Aufgabe: ${user.task || 'Keine'}</p>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.phoneNumber}')">Löschen</button>
+                    </div>
+                `).join('');
+                
+                // Update Dropdowns
+                const selects = ['groupUser', 'pointsUser', 'setPointsUser', 'taskUser'];
+                selects.forEach(id => {
+                    const select = document.getElementById(id);
+                    const current = select.value;
+                    select.innerHTML = '<option value="">-- Benutzer wählen --</option>' + 
+                        users.map(u => `<option value="${u.phoneNumber}">${u.name} (${u.phoneNumber})</option>`).join('');
+                    if (current) select.value = current;
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Benutzer:', error);
+            }
+        }
+
+        // Benutzer hinzufügen
+        document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('addName').value;
+            const phoneNumber = document.getElementById('addPhone').value;
+            
+            try {
+                const response = await adminFetch('/api/admin/add-user', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber, name })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Benutzer hinzugefügt!');
+                    document.getElementById('addUserForm').reset();
+                    loadUsers();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // Benutzer löschen
+        async function deleteUser(phoneNumber) {
+            if (!confirm('Wirklich löschen?')) return;
+            
+            try {
+                const response = await adminFetch(`/api/admin/delete-user/${phoneNumber}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Benutzer gelöscht!');
+                    loadUsers();
+                    loadLeaderboard();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        }
+
+        // Gruppe zuweisen
+        document.getElementById('assignGroupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('groupUser').value;
+            const group = document.getElementById('groupName').value;
+            
+            try {
+                const response = await adminFetch('/api/admin/assign-group', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber, group })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Gruppe zugewiesen!');
+                    document.getElementById('assignGroupForm').reset();
+                    loadUsers();
+                    loadGroupsList();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // Gruppen-Liste laden
+        async function loadGroupsList() {
+            try {
+                const response = await adminFetch('/api/admin/users');
+                const users = await response.json();
+                const groups = {};
+                
+                users.forEach(user => {
+                    if (user.group) {
+                        if (!groups[user.group]) groups[user.group] = [];
+                        groups[user.group].push(user.name);
+                    }
+                });
+                
+                const groupsList = document.getElementById('groupsList');
+                if (Object.keys(groups).length === 0) {
+                    groupsList.innerHTML = '<p>Noch keine Gruppen zugewiesen</p>';
+                } else {
+                    groupsList.innerHTML = Object.entries(groups).map(([group, members]) => `
+                        <div class="group-card">
+                            <h4>${group}</h4>
+                            <p>Mitglieder: ${members.join(', ')}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Gruppen:', error);
+            }
+        }
+
+        // Punkte zuweisen
+        document.getElementById('assignPointsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('pointsUser').value;
+            const game = document.getElementById('gameName').value;
+            const points = document.getElementById('pointsValue').value;
+            
+            try {
+                const response = await adminFetch('/api/admin/assign-points', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber, points, game })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Punkte vergeben!');
+                    document.getElementById('assignPointsForm').reset();
+                    loadUsers();
+                    loadLeaderboard();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // Punkte setzen
+        document.getElementById('setPointsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('setPointsUser').value;
+            const points = document.getElementById('newPointsValue').value;
+            
+            try {
+                const response = await adminFetch('/api/admin/set-points', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber, points })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Punkte aktualisiert!');
+                    document.getElementById('setPointsForm').reset();
+                    loadUsers();
+                    loadLeaderboard();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // Aufgabe zuweisen
+        document.getElementById('assignTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('taskUser').value;
+            const task = document.getElementById('taskText').value;
+            
+            try {
+                const response = await adminFetch('/api/admin/assign-task', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber, task })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Aufgabe zugewiesen!');
+                    document.getElementById('assignTaskForm').reset();
+                    loadUsers();
+                    loadTasksList();
+                } else {
+                    alert('Fehler: ' + data.error);
+                }
+            } catch (error) {
+                alert('Fehler: ' + error.message);
+            }
+        });
+
+        // Aufgaben-Liste laden
+        async function loadTasksList() {
+            try {
+                const response = await adminFetch('/api/admin/users');
+                const users = await response.json();
+                const tasksList = document.getElementById('tasksList');
+                
+                const userTasks = users.filter(u => u.task);
+                if (userTasks.length === 0) {
+                    tasksList.innerHTML = '<p>Noch keine Aufgaben zugewiesen</p>';
+                } else {
+                    tasksList.innerHTML = userTasks.map(user => `
+                        <div class="task-card">
+                            <h4>${user.name}</h4>
+                            <p>📝 ${user.task}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Aufgaben:', error);
+            }
+        }
+
+        // Rangliste laden
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/leaderboard');
+                const leaderboard = await response.json();
+                const leaderboardDiv = document.getElementById('leaderboard');
+                
+                if (leaderboard.length === 0) {
+                    leaderboardDiv.innerHTML = '<p>Noch keine Spieler registriert</p>';
+                } else {
+                    leaderboardDiv.innerHTML = `
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Platzierung</th>
+                                    <th>Name</th>
+                                    <th>Punkte</th>
+                                    <th>Gruppe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${leaderboard.map((user, index) => `
+                                    <tr ${index < 3 ? `class="top-${index + 1}"` : ''}>
+                                        <td>${index + 1}</td>
+                                        <td>${user.name}</td>
+                                        <td><strong>${user.points}</strong></td>
+                                        <td>${user.group || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Rangliste:', error);
+            }
+        }
+
+        // Initial Load
+        loadUsers();
+        loadGroupsList();
+        loadTasksList();
+    </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weihnachtsfeier - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>🎄 Weihnachtsfeier 2025</h1>
+            <button id="logoutBtn" class="btn btn-danger">Logout</button>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Begrüßung -->
+            <div class="welcome-card">
+                <h2 id="greeting">Willkommen!</h2>
+                <p>Hier sind deine Informationen zur Weihnachtsfeier</p>
+            </div>
+
+            <!-- Spieler-Info Cards -->
+            <div class="cards-grid">
+                <!-- Punkte Card -->
+                <div class="card points-card">
+                    <h3>⭐ Deine Punkte</h3>
+                    <div class="points-display" id="pointsDisplay">0</div>
+                </div>
+
+                <!-- Gruppe Card -->
+                <div class="card group-card">
+                    <h3>👥 Deine Gruppe</h3>
+                    <div class="info-display" id="groupDisplay">Noch nicht zugewiesen</div>
+                </div>
+
+                <!-- Aufgabe Card -->
+                <div class="card task-card">
+                    <h3>📝 Abendsaufgabe</h3>
+                    <div class="task-display" id="taskDisplay">Noch keine Aufgabe</div>
+                </div>
+            </div>
+
+            <!-- Rangliste -->
+            <div class="leaderboard-section">
+                <h2>🏆 Rangliste</h2>
+                <div id="leaderboard" class="leaderboard-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Spieler-Daten laden
+        async function loadUserData() {
+            try {
+                const userToken = localStorage.getItem('userToken');
+                if (!userToken) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const response = await fetch('/api/user', {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                
+                if (!response.ok) {
+                    localStorage.removeItem('userToken');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const user = await response.json();
+                const userName = localStorage.getItem('userName');
+                
+                // Update Greeting
+                document.getElementById('greeting').textContent = `Willkommen, ${userName}!`;
+                
+                // Update Points
+                document.getElementById('pointsDisplay').textContent = user.points;
+                
+                // Update Group
+                document.getElementById('groupDisplay').textContent = user.group || 'Noch nicht zugewiesen';
+                
+                // Update Task
+                document.getElementById('taskDisplay').textContent = user.task || 'Noch keine Aufgabe';
+                
+                // Load Leaderboard
+                loadLeaderboard();
+            } catch (error) {
+                console.error('Fehler beim Laden der Daten:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        // Rangliste laden
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/leaderboard');
+                const leaderboard = await response.json();
+                const leaderboardDiv = document.getElementById('leaderboard');
+                
+                if (leaderboard.length === 0) {
+                    leaderboardDiv.innerHTML = '<p>Noch keine Spieler registriert</p>';
+                } else {
+                    leaderboardDiv.innerHTML = `
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Platz</th>
+                                    <th>Name</th>
+                                    <th>Punkte</th>
+                                    <th>Gruppe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${leaderboard.map((user, index) => `
+                                    <tr ${index < 3 ? `class="top-${index + 1}"` : ''}>
+                                        <td>
+                                            ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                                        </td>
+                                        <td>${user.name}</td>
+                                        <td><strong>${user.points}</strong></td>
+                                        <td>${user.group || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Rangliste:', error);
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('userName');
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Logout-Fehler:', error);
+            }
+        });
+
+        // Check if logged in
+        if (!localStorage.getItem('userToken')) {
+            window.location.href = '/login';
+        }
+
+        // Daten beim Laden aktualisieren
+        loadUserData();
+
+        // Daten alle 5 Sekunden aktualisieren (um Live-Updates zu ermöglichen)
+        setInterval(loadUserData, 5000);
+    </script>
+</body>
+</html>

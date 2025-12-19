@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weihnachtsfeier - Admin Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card admin-card">
+            <h1>🎄 Weihnachtsfeier Admin</h1>
+            <h2>Admin-Panel Login</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="password">Admin-Passwort:</label>
+                    <input type="password" id="password" name="password" required placeholder="Passwort eingeben">
+                </div>
+                <button type="submit" class="btn btn-admin">Login</button>
+            </form>
+            <p class="admin-link">
+                Zurück zum <a href="/login">Spieler-Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Speichere Admin-Token im localStorage
+                    localStorage.setItem('adminToken', data.adminToken);
+                    window.location.href = data.redirect;
+                } else {
+                    alert('Fehler: ' + (data.error || 'Login fehlgeschlagen'));
+                }
+            } catch (error) {
+                alert('Fehler beim Login: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
