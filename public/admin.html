@@ -163,8 +163,9 @@
         async function adminFetch(url, options = {}) {
             const token = getAdminToken();
             if (!token) {
+                console.error('Kein Admin-Token gefunden');
                 window.location.href = '/admin-login';
-                return;
+                throw new Error('Nicht angemeldet');
             }
 
             const headers = {
@@ -173,22 +174,33 @@
                 ...options.headers
             };
 
-            const response = await fetch(url, {
-                ...options,
-                headers
-            });
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
 
-            if (response.status === 403) {
-                localStorage.removeItem('adminToken');
-                window.location.href = '/admin-login';
-                return;
+                if (response.status === 403 || response.status === 401) {
+                    console.error('Token ungültig oder abgelaufen');
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin-login';
+                    throw new Error('Nicht autorisiert');
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return response;
+            } catch (error) {
+                console.error('adminFetch error:', error);
+                throw error;
             }
-
-            return response;
         }
 
         // Check if Admin logged in
         if (!getAdminToken()) {
+            console.log('Kein Token, redirect zu login');
             window.location.href = '/admin-login';
         }
 
@@ -221,6 +233,10 @@
         async function loadUsers() {
             try {
                 const response = await adminFetch('/api/admin/users');
+                if (!response) {
+                    console.error('Keine Response von adminFetch');
+                    return;
+                }
                 const users = await response.json();
                 
                 // Update Benutzer-Liste
@@ -247,6 +263,7 @@
                 });
             } catch (error) {
                 console.error('Fehler beim Laden der Benutzer:', error);
+                // Nicht automatisch ausloggen bei normalem Fehler
             }
         }
 
