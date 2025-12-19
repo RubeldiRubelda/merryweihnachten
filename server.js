@@ -37,18 +37,14 @@ const usersData = [
 // Gruppen-Namen
 const groupNames = ["Team Rot", "Team Blau", "Team Grün", "Team Gelb"];
 
-// Initialisiere Users mit FAIRER Gruppenzuteilung (zyklisch)
+// Initialisiere Users OHNE Gruppenzuteilung (Admin teilt manuell ein)
 function initializeUsers() {
     const users = {};
     
-    usersData.forEach((userData, index) => {
-        // Zyklische Zuteilung: jeder Nutzer kommt in eine andere Gruppe
-        const groupIndex = index % groupNames.length;
-        const groupName = groupNames[groupIndex];
-        
+    usersData.forEach((userData) => {
         users[userData.phone] = {
             name: userData.name,
-            group: groupName,
+            group: '', // Leer - wird vom Admin manuell zugewiesen
             points: 0,
             task: '',
             createdAt: new Date().toLocaleString('de-DE')
@@ -56,15 +52,8 @@ function initializeUsers() {
     });
     
     // Logging
-    console.log(`\n📊 Initialisiere ${usersData.length} Nutzer in ${groupNames.length} Gruppen`);
-    console.log(`👥 Faire Gruppeneinteilung (zyklisch):\n`);
-    
-    groupNames.forEach(groupName => {
-        const members = Object.values(users).filter(u => u.group === groupName);
-        console.log(`   ${groupName}: ${members.length} Personen`);
-        members.forEach(m => console.log(`      • ${m.name}`));
-    });
-    console.log('');
+    console.log(`\n📊 Initialisiere ${usersData.length} Nutzer (ohne Gruppen)`);
+    console.log(`✅ Nutzer sind bereit - Gruppen können im Admin-Panel manuell zugewiesen werden\n`);
     
     return users;
 }
