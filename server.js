@@ -37,16 +37,13 @@ const usersData = [
 // Gruppen-Namen
 const groupNames = ["Team Rot", "Team Blau", "Team Grün", "Team Gelb"];
 
-// Initialisiere Users mit Gruppenzuteilung
+// Initialisiere Users mit FAIRER Gruppenzuteilung (zyklisch)
 function initializeUsers() {
     const users = {};
-    const totalUsers = usersData.length;
-    const groupSize = Math.ceil(totalUsers / groupNames.length);
     
-    let groupIndex = 0;
-    let groupCounter = 0;
-    
-    usersData.forEach((userData) => {
+    usersData.forEach((userData, index) => {
+        // Zyklische Zuteilung: jeder Nutzer kommt in eine andere Gruppe
+        const groupIndex = index % groupNames.length;
         const groupName = groupNames[groupIndex];
         
         users[userData.phone] = {
@@ -56,21 +53,16 @@ function initializeUsers() {
             task: '',
             createdAt: new Date().toLocaleString('de-DE')
         };
-        
-        groupCounter++;
-        
-        // Wechsel zur nächsten Gruppe, wenn Gruppengröße erreicht
-        if (groupCounter >= groupSize && groupIndex < groupNames.length - 1) {
-            groupIndex++;
-            groupCounter = 0;
-        }
     });
     
     // Logging
-    console.log(`\n📊 Initialisiere ${totalUsers} Nutzer in ${groupNames.length} Gruppen`);
+    console.log(`\n📊 Initialisiere ${usersData.length} Nutzer in ${groupNames.length} Gruppen`);
+    console.log(`👥 Faire Gruppeneinteilung (zyklisch):\n`);
+    
     groupNames.forEach(groupName => {
         const members = Object.values(users).filter(u => u.group === groupName);
         console.log(`   ${groupName}: ${members.length} Personen`);
+        members.forEach(m => console.log(`      • ${m.name}`));
     });
     console.log('');
     
