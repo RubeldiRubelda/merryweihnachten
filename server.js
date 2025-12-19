@@ -23,7 +23,7 @@ const usersData = [
     { name: "Alisha Behrens", phone: "0764783308" },
     { name: "juanita tambwe", phone: "0796201898" },
     { name: "Fatima Keziah Mayhew", phone: "0768222202" },
-    { name: "Tim Witzig", phone: "0794052857" },
+    { name: "Tim Witzig", phone: "0000000000" },
     { name: "Matti Witzig", phone: "0794052857" },
     { name: "Fabian Jung", phone: "0792422432" },
     { name: "Benjamin Kunz", phone: "0772667126" },
