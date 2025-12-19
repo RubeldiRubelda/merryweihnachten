@@ -154,20 +154,26 @@
     </div>
 
     <script>
+        console.log('🎄 Admin-Panel wird geladen...');
+        
         // Helper: Admin-Token aus localStorage holen
         function getAdminToken() {
-            return localStorage.getItem('adminToken');
+            const token = localStorage.getItem('adminToken');
+            console.log('🔑 Token aus localStorage:', token ? 'Vorhanden (' + token.substring(0, 20) + '...)' : 'NICHT VORHANDEN');
+            return token;
         }
 
         // Helper: API-Anfrage mit Admin-Token
         async function adminFetch(url, options = {}) {
+            console.log('📡 adminFetch aufgerufen:', url);
             const token = getAdminToken();
             if (!token) {
-                console.error('Kein Admin-Token gefunden');
+                console.error('❌ Kein Admin-Token gefunden');
                 window.location.href = '/admin-login';
                 throw new Error('Nicht angemeldet');
             }
 
+            console.log('🔐 Sende Request mit Token:', token.substring(0, 20) + '...');
             const headers = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
@@ -180,8 +186,10 @@
                     headers
                 });
 
+                console.log('📥 Response Status:', response.status);
+
                 if (response.status === 403 || response.status === 401) {
-                    console.error('Token ungültig oder abgelaufen');
+                    console.error('❌ Token ungültig oder abgelaufen (Status:', response.status + ')');
                     localStorage.removeItem('adminToken');
                     window.location.href = '/admin-login';
                     throw new Error('Nicht autorisiert');
@@ -191,17 +199,21 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
+                console.log('✅ Request erfolgreich');
                 return response;
             } catch (error) {
-                console.error('adminFetch error:', error);
+                console.error('❌ adminFetch error:', error);
                 throw error;
             }
         }
 
         // Check if Admin logged in
+        console.log('🔍 Prüfe Admin-Login...');
         if (!getAdminToken()) {
-            console.log('Kein Token, redirect zu login');
+            console.log('❌ Kein Token, redirect zu login');
             window.location.href = '/admin-login';
+        } else {
+            console.log('✅ Token vorhanden, lade Admin-Panel');
         }
 
         // Tab-Wechsel
@@ -231,13 +243,15 @@
 
         // Benutzer laden
         async function loadUsers() {
+            console.log('👥 Lade Benutzer...');
             try {
                 const response = await adminFetch('/api/admin/users');
                 if (!response) {
-                    console.error('Keine Response von adminFetch');
+                    console.error('❌ Keine Response von adminFetch');
                     return;
                 }
                 const users = await response.json();
+                console.log('✅ Benutzer geladen:', users.length, 'Nutzer');
                 
                 // Update Benutzer-Liste
                 const usersList = document.getElementById('usersList');

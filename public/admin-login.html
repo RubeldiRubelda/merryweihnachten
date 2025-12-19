@@ -31,22 +31,33 @@
             const password = document.getElementById('password').value;
             
             try {
+                console.log('🔐 Sende Login-Anfrage...');
                 const response = await fetch('/admin-login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
                 
+                console.log('📥 Response Status:', response.status);
                 const data = await response.json();
+                console.log('📦 Response Data:', data);
                 
                 if (data.success) {
+                    console.log('✅ Login erfolgreich! Token:', data.adminToken);
                     // Speichere Admin-Token im localStorage
                     localStorage.setItem('adminToken', data.adminToken);
-                    window.location.href = data.redirect;
+                    console.log('💾 Token gespeichert. LocalStorage:', localStorage.getItem('adminToken'));
+                    
+                    // Kleine Verzögerung vor Redirect, um sicherzustellen dass Token gespeichert ist
+                    setTimeout(() => {
+                        console.log('🔄 Redirect zu:', data.redirect);
+                        window.location.href = data.redirect;
+                    }, 100);
                 } else {
                     alert('Fehler: ' + (data.error || 'Login fehlgeschlagen'));
                 }
             } catch (error) {
+                console.error('❌ Login-Fehler:', error);
                 alert('Fehler beim Login: ' + error.message);
             }
         });
