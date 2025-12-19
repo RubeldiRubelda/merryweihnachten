@@ -11,8 +11,74 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ============ INITIALIERE NUTZER MIT GRUPPENZUTEILUNG ============
+
+// Nutzer-Daten mit bereinigten Telefonnummern (ohne Klammern)
+const usersData = [
+    { name: "Penuel Fanantenana", phone: "0793004064" },
+    { name: "Luana Behrens", phone: "0413100554" },
+    { name: "Lukas Kunz", phone: "0798508218" },
+    { name: "Annina Bachmann", phone: "0774888696" },
+    { name: "Alma Meyer", phone: "0415481656" },
+    { name: "Alisha Behrens", phone: "0764783308" },
+    { name: "juanita tambwe", phone: "0796201898" },
+    { name: "Fatima Keziah Mayhew", phone: "0768222202" },
+    { name: "Tim Witzig", phone: "0794052857" },
+    { name: "Matti Witzig", phone: "0794052857" },
+    { name: "Fabian Jung", phone: "0792422432" },
+    { name: "Benjamin Kunz", phone: "0772667126" },
+    { name: "Timea Meili", phone: "0765305345" },
+    { name: "Nisida Lüthi", phone: "0788849671" },
+    { name: "Kuya Salve", phone: "0768198733" },
+    { name: "David Gaurilyk", phone: "0798862213" },
+    { name: "Noe Deon", phone: "0774805627" }
+];
+
+// Gruppen-Namen
+const groupNames = ["Team Rot", "Team Blau", "Team Grün", "Team Gelb"];
+
+// Initialisiere Users mit Gruppenzuteilung
+function initializeUsers() {
+    const users = {};
+    const totalUsers = usersData.length;
+    const groupSize = Math.ceil(totalUsers / groupNames.length);
+    
+    let groupIndex = 0;
+    let groupCounter = 0;
+    
+    usersData.forEach((userData) => {
+        const groupName = groupNames[groupIndex];
+        
+        users[userData.phone] = {
+            name: userData.name,
+            group: groupName,
+            points: 0,
+            task: '',
+            createdAt: new Date().toLocaleString('de-DE')
+        };
+        
+        groupCounter++;
+        
+        // Wechsel zur nächsten Gruppe, wenn Gruppengröße erreicht
+        if (groupCounter >= groupSize && groupIndex < groupNames.length - 1) {
+            groupIndex++;
+            groupCounter = 0;
+        }
+    });
+    
+    // Logging
+    console.log(`\n📊 Initialisiere ${totalUsers} Nutzer in ${groupNames.length} Gruppen`);
+    groupNames.forEach(groupName => {
+        const members = Object.values(users).filter(u => u.group === groupName);
+        console.log(`   ${groupName}: ${members.length} Personen`);
+    });
+    console.log('');
+    
+    return users;
+}
+
 // In-memory storage (mit einfachem Token-Auth für Vercel)
-let users = {};
+let users = initializeUsers();
 let adminTokens = new Set();
 const ADMIN_PASSWORD = 'admin123';
 
