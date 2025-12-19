@@ -78,19 +78,26 @@ async function saveUsers(users) {
 
 async function getAdminTokens() {
     try {
+        console.log('🔍 Lade Admin-Tokens aus KV...');
         const tokens = await kv.get('admin_tokens');
-        return tokens ? new Set(tokens) : new Set();
+        const tokenSet = tokens ? new Set(tokens) : new Set();
+        console.log('📦 Tokens geladen:', tokenSet.size, 'Tokens');
+        return tokenSet;
     } catch (error) {
-        console.error('KV Error:', error);
+        console.error('❌ KV Error beim Laden:', error);
         return new Set();
     }
 }
 
 async function saveAdminTokens(tokens) {
     try {
-        await kv.set('admin_tokens', Array.from(tokens));
+        const tokenArray = Array.from(tokens);
+        console.log('💾 Speichere', tokenArray.length, 'Tokens in KV...');
+        await kv.set('admin_tokens', tokenArray);
+        console.log('✅ Tokens gespeichert');
     } catch (error) {
-        console.error('KV Save Error:', error);
+        console.error('❌ KV Save Error:', error);
+        throw error; // Wichtig: Fehler weitergeben!
     }
 }
 
@@ -164,9 +171,18 @@ app.post('/admin-login', async (req, res) => {
     if (password === ADMIN_PASSWORD) {
         // Erstelle einen Admin-Token
         const adminToken = Buffer.from(`admin_${Date.now()}_${Math.random()}`).toString('base64');
+        console.log('🔐 Admin-Login: Token erstellt:', adminToken.substring(0, 20) + '...');
+        
         const tokens = await getAdminTokens();
+        console.log('📦 Vorhandene Tokens:', tokens.size);
+        
         tokens.add(adminToken);
         await saveAdminTokens(tokens);
+        console.log('✅ Token gespeichert. Gesamt:', tokens.size);
+        
+        // Verifiziere, dass Token gespeichert wurde
+        const verifyTokens = await getAdminTokens();
+        console.log('🔍 Verifikation: Token in KV?', verifyTokens.has(adminToken));
         
         res.json({ success: true, redirect: '/admin', adminToken: adminToken });
     } else {
@@ -181,10 +197,23 @@ app.get('/admin', (req, res) => {
 // Middleware zum Überprüfen des Admin-Tokens
 async function checkAdminToken(req, res, next) {
     const adminToken = req.headers.authorization?.split(' ')[1];
-    const tokens = await getAdminTokens();
-    if (!adminToken || !tokens.has(adminToken)) {
+    console.log('🔍 checkAdminToken: Token empfangen:', adminToken ? adminToken.substring(0, 20) + '...' : 'KEIN TOKEN');
+    
+    if (!adminToken) {
+        console.log('❌ Kein Token im Header');
         return res.status(403).json({ error: 'Nicht autorisiert' });
     }
+    
+    const tokens = await getAdminTokens();
+    console.log('📦 Tokens in KV:', tokens.size, 'Tokens');
+    console.log('🔍 Token vorhanden?', tokens.has(adminToken));
+    
+    if (!tokens.has(adminToken)) {
+        console.log('❌ Token nicht in KV gefunden');
+        return res.status(403).json({ error: 'Nicht autorisiert' });
+    }
+    
+    console.log('✅ Token validiert');
     next();
 }
 
